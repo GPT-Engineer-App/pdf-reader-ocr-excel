@@ -1,0 +1,39 @@
+import os
+import PyPDF2
+import pytesseract
+from pdf2image import convert_from_path
+import pandas as pd
+
+# Path to the folder containing PDF files
+pdf_folder_path = 'D:/TIMG'
+
+# Get the list of PDF files in the folder
+pdf_files = [f for f in os.listdir(pdf_folder_path) if f.endswith('.pdf')]
+
+# Check if there are any PDF files in the folder
+if not pdf_files:
+    print("No PDF files found in the specified folder.")
+    exit()
+
+# Process the first PDF file
+pdf_file_path = os.path.join(pdf_folder_path, pdf_files[0])
+
+# Convert PDF to images
+images = convert_from_path(pdf_file_path)
+
+# Perform OCR on each image and collect the recognized text
+recognized_text = []
+for image in images:
+    text = pytesseract.image_to_string(image)
+    recognized_text.append(text)
+
+# Print the recognized text to confirm OCR operation was successful
+for page_num, text in enumerate(recognized_text, start=1):
+    print(f"Page {page_num}:\n{text}\n{'-'*40}")
+
+# Save the recognized text to an Excel file
+excel_file_path = os.path.join(pdf_folder_path, 'recognized_text.xlsx')
+df = pd.DataFrame({'Page': range(1, len(recognized_text) + 1), 'Text': recognized_text})
+df.to_excel(excel_file_path, index=False)
+
+print(f"Recognized text has been saved to {excel_file_path}")
